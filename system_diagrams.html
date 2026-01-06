@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Layer Toggle</title>
+ 
+ <style>
+   
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: url('https://drive.google.com/thumbnail?id=1OxZYSKfXVo8E0B1f00lrWDMPWqFhxyEs&sz=w1000') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    .container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      /* Added transition for smooth movement */
+      transition: transform 0.3s ease;
+    }
+
+    /* When the menu is open, shift container left so that the image center moves left */
+    .container.menu-open {
+      transform: translateX(-10vw);
+    }
+
+    .container img {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: auto;
+      height: 100%;
+      max-width: 100%;
+      display: none;
+      object-fit: contain;
+    }
+
+    .menu {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 20vw;
+      max-width: 300px;
+      height: 100%;
+      background: #1C3A42;
+      color: #fff;
+      padding: 20px;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+      transition: transform 0.3s ease;
+      transform: translateX(0);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-y: auto;
+    }
+
+    .menu.closed {
+      transform: translateX(100%);
+    }
+
+    .menu-toggle {
+      position: fixed;
+      top: 23px;
+      right: calc(20vw + 25px);
+      width: 30px;
+      height: 30px;
+      background: #80A0AF;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 1100;
+      border-radius: 5px;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+      transition: right 0.3s ease;
+    }
+
+    .menu.closed + .menu-toggle {
+      right: 20px;
+    }
+
+    .menu .button-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .menu button {
+      width: 100%;
+      margin-bottom: 8px;
+      cursor: pointer;
+      text-align: center;
+      padding: 8px;
+      border: none;
+      border-radius: 5px;
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      font-size: 14px;
+    }
+
+    @media (max-height: 600px) {
+      .menu .button-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 5px;
+      }
+
+      .menu button {
+        width: auto;
+        font-size: 12px;
+      }
+    }
+       
+    @media (max-width: 600px) {
+    .menu .button-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+}
+
+    .menu button.active {
+      background: #9A5D48;
+    }
+
+    .menu button:hover {
+      background: #666;
+    }
+
+    .hover-preview {
+      opacity: 0.5;
+    }
+
+    .menu img {
+      width: 70%;
+      height: auto;
+      margin-top: 8px;
+      margin-bottom: 25px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .menu img:last-of-type {
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="menu" id="menu">
+    <img
+      src="https://drive.google.com/thumbnail?id=1IuXKoJy7njufAKXfehbFfEXinbJAa7YG&sz=w1000"
+      alt="BlackFly Logo"
+    />
+    <div id="controls" class="button-container">
+      <!-- Control toggles will be dynamically added here -->
+    </div>
+    <img
+      src="https://drive.google.com/thumbnail?id=1KQS92akWiL_0juOZS7gD6HgfmTUkUvOO&sz=w1000"
+      alt="Helix Reference"
+    />
+  </div>
+  <div class="menu-toggle" id="menuToggle">☰</div>
+
+  <div class="container" id="imageContainer">
+    <!-- Images will be dynamically added here -->
+  </div>
+
+  <script>
+    const images = [
+        { id: "1pFMZn-jaFTgG4izzG8nmKMjqWd5Wz0hA", name: "BlackFly" },
+        { id: "1G31m2ij64vGUMajK3di9xn_O517cK7Dx", name: "Flight Controllers" },
+        { id: "1dcpCqIKxwzEJpld4P9uj2ehXh2dHtv7S", name: "Motors"},
+        { id: "1YGR4opXkLm1d-iZgu-wpl49q96OET0y9", name: "Elevons" },
+        { id: "1PwLt0Ebr7CKyAJvenhepUYhvr8D3EQ_f", name: "Radars" },
+        { id: "1Fbo4_b-AJw6F97FJyVZr2KM2LhmBqgR6", name: "A Propellers" },
+        { id: "1R93Bz32srh6DL4jpJ3v0c0i3QoK3GEYM", name: "B Propellers" },
+        { id: "11cJyeRm-EiIC57utkVZCrlzgLX6JG0g0", name: "GPS Antennas" },
+        { id: "1mAi0uuaO9Ac7CyyPtBaRwyJCK9bXXvJ2", name: "Pitot Tubes" },
+        { id: "1aw-owhAbgO-Q8zBvols5J3zwo_2W0Js-", name: "Ballistic Parachute System" },
+        { id: "1OtuoyHxpOPE2EKS6sR9ukWCPgr2b2C7t", name: "CAN Overlay" },
+        { id: "1Y-UsDHrLyUiHACO6SD8-hhHWHIy9Hjg9", name: "CAN Connections A" },
+        { id: "1oEEr7mssXvn69ezyE5aOjL6HIov8YxV-", name: "CAN Connections B" },
+        { id: "1oX5EugoR9_dj5PzHQoC53cFTtJyyyizU", name: "CAN Connections C" },
+    ];
+
+    const container = document.getElementById("imageContainer");
+    const controls = document.getElementById("controls");
+    const menu = document.getElementById("menu");
+    const menuToggle = document.getElementById("menuToggle");
+
+    let menuOpen = true; // Initial state: menu is open
+
+    // Set the container state on load (optional)
+    if (menuOpen) {
+      container.classList.add("menu-open");
+    }
+
+    menuToggle.addEventListener("click", () => {
+      menuOpen = !menuOpen;
+      menu.classList.toggle("closed", !menuOpen);
+      container.classList.toggle("menu-open", menuOpen);
+    });
+
+    images.forEach((image, index) => {
+    const img = document.createElement('img');
+    img.src = `https://drive.google.com/thumbnail?id=${image.id}&sz=w1000`;
+    img.id = `layer${index + 1}`;
+    container.appendChild(img);
+
+    const button = document.createElement('button');
+    // Use the custom name instead of "Layer X"
+    button.textContent = image.name;
+    
+    // Display the first image by default
+    if (index === 0) {
+        button.classList.add('active');
+        img.style.display = 'block';
+    }
+
+    controls.appendChild(button);
+
+    button.addEventListener('click', () => {
+        const isActive = button.classList.contains('active');
+        button.classList.toggle('active', !isActive);
+        img.style.display = isActive ? 'none' : 'block';
+    });
+
+    button.addEventListener('mouseenter', () => {
+        if (!button.classList.contains('active')) {
+            img.classList.add('hover-preview');
+            img.style.display = 'block';
+        }
+    });
+
+    button.addEventListener('mouseleave', () => {
+        img.classList.remove('hover-preview');
+        if (!button.classList.contains('active')) {
+            img.style.display = 'none';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
